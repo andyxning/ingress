@@ -787,6 +787,16 @@ stream {
         {{ if $tcpServer.Backend.ProxyProtocol.Encode }}
         proxy_protocol          on;
         {{ end }}
+
+        {{ range $server := $servers }}
+        {{ range $location := $server.Locations }}
+        {{ if eq (buildUpstreamName $location) (printf "%s-%s-%s" $tcpServer.Backend.Namespace $tcpServer.Backend.Name $tcpServer.Backend.Port.String) }}
+        {{ if gt (len $location.Whitelist.CIDR) 0 }}
+        {{ range $ip := $location.Whitelist.CIDR }}
+        allow {{ $ip }};{{ end }}
+        deny all;
+        {{ end }}
+        {{ end }}{{ end }}{{ end }}
     }
     {{ end }}
 
